@@ -130,6 +130,24 @@ func (c *GeneratedContent) PropertyNames() ([]string, error) {
 	return names, nil
 }
 
+// ValueAsBool returns the value of a boolean top-level property.
+// The second return value is false when the property is absent, is not boolean,
+// or the content has been released.
+func (c *GeneratedContent) ValueAsBool(property string) (bool, bool) {
+	if c.ptr == nil {
+		return false, false
+	}
+	cname := C.CString(property)
+	defer C.free(unsafe.Pointer(cname))
+	var out C.bool
+	var code C.int
+	ok := C.FMGeneratedContentGetPropertyValueAsBool(C.FMGeneratedContentRef(c.ptr), cname, &out, &code)
+	if !bool(ok) {
+		return false, false
+	}
+	return bool(out), true
+}
+
 // HasProperty reports whether the content has a top-level property with the
 // given name. It is cheaper than calling Value and checking for nil because it
 // does not distinguish between a missing key and a key whose value is null.
