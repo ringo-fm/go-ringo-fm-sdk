@@ -93,6 +93,25 @@ func (c *GeneratedContent) Value(property string) any {
 	return m[property]
 }
 
+// PropertyNames returns the sorted list of top-level property names present in
+// the content. It is useful for dynamic schema handling when the schema is not
+// fully known at compile time. Returns nil on error or after Close.
+func (c *GeneratedContent) PropertyNames() ([]string, error) {
+	if c.ptr == nil {
+		return nil, fmt.Errorf("generated content: released")
+	}
+	raw := C.FMGeneratedContentGetPropertyNames(C.FMGeneratedContentRef(c.ptr))
+	if raw == nil {
+		return nil, fmt.Errorf("generated content: failed to read property names")
+	}
+	defer C.FMFreeString(raw)
+	var names []string
+	if err := json.Unmarshal([]byte(C.GoString(raw)), &names); err != nil {
+		return nil, err
+	}
+	return names, nil
+}
+
 // HasProperty reports whether the content has a top-level property with the
 // given name. It is cheaper than calling Value and checking for nil because it
 // does not distinguish between a missing key and a key whose value is null.

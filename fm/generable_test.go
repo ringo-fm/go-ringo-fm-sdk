@@ -26,6 +26,42 @@ func TestGeneratedContentFromJSON(t *testing.T) {
 	}
 }
 
+func TestGeneratedContentPropertyNames(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"score":99,"name":"Alice","active":true}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	names, err := c.PropertyNames()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(names) != 3 {
+		t.Fatalf("PropertyNames() = %v (len %d), want 3 names", names, len(names))
+	}
+	want := map[string]bool{"active": true, "name": true, "score": true}
+	for _, n := range names {
+		if !want[n] {
+			t.Errorf("unexpected property name %q", n)
+		}
+	}
+}
+
+func TestGeneratedContentPropertyNamesAfterClose(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"x":1}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Close()
+
+	// PropertyNames on a released GeneratedContent must return an error, not crash.
+	_, err = c.PropertyNames()
+	if err == nil {
+		t.Error("PropertyNames() on closed content returned nil error, want error")
+	}
+}
+
 func TestGeneratedContentHasProperty(t *testing.T) {
 	c, err := GeneratedContentFromJSON(`{"greeting":"hello","count":42}`)
 	if err != nil {
