@@ -105,6 +105,7 @@ char * _Nullable FMGeneratedContentGetJSONString(FMGeneratedContentRef _Nonnull 
 char * _Nullable FMGeneratedContentGetPropertyValue(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, int * _Nullable outErrorCode, char * * _Nullable outErrorDescription);
 bool FMGeneratedContentGetPropertyValueAsDouble(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, double * _Nullable outValue, int * _Nullable outErrorCode);
 bool FMGeneratedContentGetPropertyValueAsBool(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, bool * _Nullable outValue, int * _Nullable outErrorCode);
+bool FMGeneratedContentGetPropertyValueAsInt(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, int64_t * _Nullable outValue, int * _Nullable outErrorCode);
 bool FMGeneratedContentIsComplete(FMGeneratedContentRef _Nonnull content);
 bool FMGeneratedContentHasProperty(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName);
 char * _Nullable FMGeneratedContentGetPropertyNames(FMGeneratedContentRef _Nonnull content);

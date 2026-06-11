@@ -26,6 +26,53 @@ func TestGeneratedContentFromJSON(t *testing.T) {
 	}
 }
 
+func TestGeneratedContentValueAsInt64(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"count":7,"price":3.14,"label":"hello"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	v, ok := c.ValueAsInt64("count")
+	if !ok {
+		t.Error("ValueAsInt64(count) ok = false, want true")
+	}
+	if v != 7 {
+		t.Errorf("ValueAsInt64(count) = %d, want 7", v)
+	}
+
+	// Float property must fail.
+	_, ok2 := c.ValueAsInt64("price")
+	if ok2 {
+		t.Error("ValueAsInt64(price) ok = true, want false for float property")
+	}
+
+	// String property must fail.
+	_, ok3 := c.ValueAsInt64("label")
+	if ok3 {
+		t.Error("ValueAsInt64(label) ok = true, want false for string property")
+	}
+
+	// Missing property must fail.
+	_, ok4 := c.ValueAsInt64("missing")
+	if ok4 {
+		t.Error("ValueAsInt64(missing) ok = true, want false")
+	}
+}
+
+func TestGeneratedContentValueAsInt64AfterClose(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"x":1}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Close()
+
+	_, ok := c.ValueAsInt64("x")
+	if ok {
+		t.Error("ValueAsInt64 on closed content = true, want false")
+	}
+}
+
 func TestGeneratedContentValueAsBool(t *testing.T) {
 	c, err := GeneratedContentFromJSON(`{"active":true,"disabled":false,"score":42}`)
 	if err != nil {

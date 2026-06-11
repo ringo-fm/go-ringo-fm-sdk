@@ -130,6 +130,24 @@ func (c *GeneratedContent) PropertyNames() ([]string, error) {
 	return names, nil
 }
 
+// ValueAsInt64 returns the value of an integer top-level property as int64.
+// The second return value is false when the property is absent, is not an
+// integer (e.g. a float or string), or the content has been released.
+func (c *GeneratedContent) ValueAsInt64(property string) (int64, bool) {
+	if c.ptr == nil {
+		return 0, false
+	}
+	cname := C.CString(property)
+	defer C.free(unsafe.Pointer(cname))
+	var out C.int64_t
+	var code C.int
+	ok := C.FMGeneratedContentGetPropertyValueAsInt(C.FMGeneratedContentRef(c.ptr), cname, &out, &code)
+	if !bool(ok) {
+		return 0, false
+	}
+	return int64(out), true
+}
+
 // ValueAsBool returns the value of a boolean top-level property.
 // The second return value is false when the property is absent, is not boolean,
 // or the content has been released.
