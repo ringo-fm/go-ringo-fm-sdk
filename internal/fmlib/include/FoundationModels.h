@@ -64,6 +64,7 @@ FMLanguageModelSessionRef _Nonnull FMLanguageModelSessionCreateFromSystemLanguag
 
 FMComposedPrompt _Nonnull FMComposedPromptInitialize(void);
 void FMComposedPromptAddText(FMComposedPrompt _Nonnull composedPrompt, const char * _Nonnull text);
+char * _Nullable FMComposedPromptGetTextContent(FMComposedPrompt _Nonnull composedPrompt);
 bool FMComposedPromptAddImage(FMComposedPrompt _Nonnull composedPrompt, const char * _Nonnull imagePath, FMComposedPromptAddImageError * _Nullable error);
 bool FMComposedPromptAddIdentifiedImage(FMComposedPrompt _Nonnull composedPrompt, const char * _Nonnull imagePath, const char * _Nonnull imageIdentifier, FMComposedPromptAddImageError * _Nullable error);
 bool FMComposedPromptAddAttachment(FMComposedPrompt _Nonnull composedPrompt, const char * _Nonnull imagePath, const char * _Nullable label, FMComposedPromptAddImageError * _Nullable error);
