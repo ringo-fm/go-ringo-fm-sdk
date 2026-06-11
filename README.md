@@ -2,20 +2,20 @@
 
 Go bindings for Apple's [Foundation Models framework](https://developer.apple.com/documentation/foundationmodels) — the on-device language model that powers Apple Intelligence on macOS 26+.
 
-This is a Go port of [`python-apple-fm-sdk`](../python-apple-fm-sdk) and a sibling to the MoonBit and Rust ports under `../`. It reuses the same `foundation-models-c` Swift/C bridge.
+This repository vendors the `foundation-models-c` Swift/C bridge source locally, so builds do not depend on a sibling checkout of `python-apple-fm-sdk`.
 
 ## Requirements
 
 - macOS 26+ on Apple Silicon with Apple Intelligence enabled
 - Xcode 26+
 - Go 1.22+
-- A built copy of `libFoundationModels.dylib` from `../python-apple-fm-sdk/foundation-models-c`
+- Swift Package Manager
 
 ## Build
 
 ```sh
-# 1. Build the Swift C bindings once.
-cd ../python-apple-fm-sdk/foundation-models-c
+# 1. Build the vendored Swift C bindings once.
+cd foundation-models-c
 swift build -c release
 
 # 2. Tell cgo where to find the dylib.
@@ -23,14 +23,14 @@ export FM_LIB_DIR="$(pwd)/.build/release"
 export CGO_LDFLAGS="-L${FM_LIB_DIR} -Wl,-rpath,${FM_LIB_DIR}"
 
 # 3. Build / run examples from the Go repo.
-cd ../../go-ringo-fm-sdk
+cd ..
 go build ./...
 go run ./examples/simple
 go run ./examples/streaming
 go run ./examples/transcript
 ```
 
-The header is vendored under `internal/fmlib/include/FoundationModels.h` so cgo does not need a header search path beyond this repo.
+The bridge source lives under `foundation-models-c/`. The C header used by cgo is vendored under `internal/fmlib/include/FoundationModels.h`.
 
 ## Quick start
 
@@ -123,3 +123,5 @@ Alpha. The Go API is not yet stable and macOS 26 is itself in early-adopter terr
 ## License
 
 See `LICENSE.md`.
+
+This repository includes vendored source under `foundation-models-c/` derived from Apple's `python-apple-fm-sdk` project and keeps the upstream license headers intact.
