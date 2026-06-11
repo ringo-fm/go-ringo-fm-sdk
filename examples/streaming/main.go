@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log"
 
-	fm "github.com/f4ah6o/go-ringo-fm-sdk/fm"
+	fm "github.com/ringo-fm/go-ringo-fm-sdk/fm"
 )
 
 func main() {

@@ -1,3 +1,3 @@
-module github.com/f4ah6o/go-ringo-fm-sdk
+module github.com/ringo-fm/go-ringo-fm-sdk
 
 go 1.22

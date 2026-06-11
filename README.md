@@ -2,7 +2,7 @@
 
 Go bindings for Apple's [Foundation Models framework](https://developer.apple.com/documentation/foundationmodels) — the on-device language model that powers Apple Intelligence on macOS 26+.
 
-This repository vendors the `foundation-models-c` Swift/C bridge source locally, so builds do not depend on a sibling checkout of `python-apple-fm-sdk`.
+This repository vendors the `foundation-models-c` Swift/C bridge source locally, so builds do not depend on a sibling checkout of `ringo-fm-bridge`.
 
 ## Requirements
 
@@ -41,7 +41,7 @@ import (
 	"context"
 	"fmt"
 
-	fm "github.com/f4ah6o/go-ringo-fm-sdk/fm"
+	fm "github.com/ringo-fm/go-ringo-fm-sdk/fm"
 )
 
 func main() {
@@ -145,4 +145,4 @@ Alpha. The Go API is not yet stable and macOS 26 is itself in early-adopter terr
 
 See `LICENSE.md`.
 
-This repository includes vendored source under `foundation-models-c/` derived from Apple's `python-apple-fm-sdk` project and keeps the upstream license headers intact.
+This repository includes vendored source under `foundation-models-c/` snapshotted from the `ringo-fm-bridge` project and keeps the upstream license headers intact.
