@@ -116,6 +116,27 @@ session, _ := fm.NewSession(fm.WithTools(bt))
 
 Up to 32 tools may be registered simultaneously across the process (raise `FM_TOOL_SLOTS` in `fm/cgo.go` if you need more).
 
+### Schema Discovery
+
+`Session.DiscoverSchema` uses guided generation to infer a reviewable schema
+candidate from text, JSON, or already-extracted documents. The response includes
+field candidates, evidence, warnings, metrics, and review findings; treat it as
+a draft for human review, not an approved schema.
+
+```go
+opts := fm.DefaultDiscoveryOptions()
+response, err := session.DiscoverSchema(ctx, fm.DiscoverSchemaRequest{
+	Documents: []fm.DiscoveryDocument{{
+		ID: "doc-1",
+		Source: fm.DiscoveryDocumentSource{
+			Type:    "text",
+			Content: "請求日 2026-01-01\n合計 12,000円",
+		},
+	}},
+	Options: &opts,
+})
+```
+
 ## Status
 
 Alpha. The Go API is not yet stable and macOS 26 is itself in early-adopter territory.
