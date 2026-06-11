@@ -56,6 +56,16 @@ func (t *Transcript) AsMap() (map[string]any, error) {
 	return m, nil
 }
 
+// EntryCount returns the number of entries in the transcript without parsing
+// the full transcript JSON. Returns 0 on error or when the transcript is empty.
+func (t *Transcript) EntryCount() int {
+	ptr := t.sessionPtr()
+	if ptr == nil {
+		return 0
+	}
+	return int(C.FMLanguageModelSessionGetTranscriptEntryCount(C.FMLanguageModelSessionRef(ptr)))
+}
+
 // Close releases the underlying C handle, if this Transcript owns one. Safe
 // to call multiple times; no-op on Transcripts bound to a live Session.
 func (t *Transcript) Close() {
