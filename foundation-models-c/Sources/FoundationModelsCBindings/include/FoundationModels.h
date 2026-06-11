@@ -103,6 +103,7 @@ FMGeneratedContentRef _Nullable FMGeneratedContentCreateFromJSON(const char * _N
 char * _Nullable FMGeneratedContentGetJSONString(FMGeneratedContentRef _Nonnull content);
 char * _Nullable FMGeneratedContentGetPropertyValue(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, int * _Nullable outErrorCode, char * * _Nullable outErrorDescription);
 bool FMGeneratedContentIsComplete(FMGeneratedContentRef _Nonnull content);
+bool FMGeneratedContentHasProperty(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName);
 // MARK: - Structured generation session functions
 
 FMTaskRef _Nonnull FMLanguageModelSessionRespondWithSchema(FMLanguageModelSessionRef _Nonnull session, FMComposedPrompt _Nonnull composedPrompt, FMGenerationSchemaRef _Nonnull schema, const char * _Nullable optionsJSON, void * _Nullable userInfo, FMLanguageModelSessionStructuredResponseCallback callback);

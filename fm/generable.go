@@ -93,6 +93,20 @@ func (c *GeneratedContent) Value(property string) any {
 	return m[property]
 }
 
+// HasProperty reports whether the content has a top-level property with the
+// given name. It is cheaper than calling Value and checking for nil because it
+// does not distinguish between a missing key and a key whose value is null.
+// Use HasProperty to guard GetPropertyValue calls when the schema is not fully
+// known in advance.
+func (c *GeneratedContent) HasProperty(name string) bool {
+	if c.ptr == nil {
+		return false
+	}
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	return bool(C.FMGeneratedContentHasProperty(C.FMGeneratedContentRef(c.ptr), cname))
+}
+
 // IsComplete reports whether the model finished producing this content.
 func (c *GeneratedContent) IsComplete() bool {
 	if c.ptr == nil {
