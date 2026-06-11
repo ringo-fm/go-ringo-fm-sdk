@@ -26,6 +26,57 @@ func TestGeneratedContentFromJSON(t *testing.T) {
 	}
 }
 
+func TestGeneratedContentValueAsFloat64(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"price":3.14,"count":42,"label":"hello"}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer c.Close()
+
+	// Float property.
+	v, ok := c.ValueAsFloat64("price")
+	if !ok {
+		t.Error("ValueAsFloat64(price) ok = false, want true")
+	}
+	if diff := v - 3.14; diff < -1e-9 || diff > 1e-9 {
+		t.Errorf("ValueAsFloat64(price) = %v, want 3.14", v)
+	}
+
+	// Integer property coerced to float64.
+	v2, ok2 := c.ValueAsFloat64("count")
+	if !ok2 {
+		t.Error("ValueAsFloat64(count) ok = false, want true")
+	}
+	if v2 != 42.0 {
+		t.Errorf("ValueAsFloat64(count) = %v, want 42.0", v2)
+	}
+
+	// String property must fail.
+	_, ok3 := c.ValueAsFloat64("label")
+	if ok3 {
+		t.Error("ValueAsFloat64(label) ok = true, want false")
+	}
+
+	// Missing property must fail.
+	_, ok4 := c.ValueAsFloat64("missing")
+	if ok4 {
+		t.Error("ValueAsFloat64(missing) ok = true, want false")
+	}
+}
+
+func TestGeneratedContentValueAsFloat64AfterClose(t *testing.T) {
+	c, err := GeneratedContentFromJSON(`{"x":1}`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.Close()
+
+	_, ok := c.ValueAsFloat64("x")
+	if ok {
+		t.Error("ValueAsFloat64 on closed content = true, want false")
+	}
+}
+
 func TestGeneratedContentPropertyNames(t *testing.T) {
 	c, err := GeneratedContentFromJSON(`{"score":99,"name":"Alice","active":true}`)
 	if err != nil {

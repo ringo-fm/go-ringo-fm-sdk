@@ -93,6 +93,24 @@ func (c *GeneratedContent) Value(property string) any {
 	return m[property]
 }
 
+// ValueAsFloat64 returns the value of a numeric top-level property as float64.
+// The second return value is false when the property is absent, is not numeric,
+// or the content has been released.
+func (c *GeneratedContent) ValueAsFloat64(property string) (float64, bool) {
+	if c.ptr == nil {
+		return 0, false
+	}
+	cname := C.CString(property)
+	defer C.free(unsafe.Pointer(cname))
+	var out C.double
+	var code C.int
+	ok := C.FMGeneratedContentGetPropertyValueAsDouble(C.FMGeneratedContentRef(c.ptr), cname, &out, &code)
+	if !bool(ok) {
+		return 0, false
+	}
+	return float64(out), true
+}
+
 // PropertyNames returns the sorted list of top-level property names present in
 // the content. It is useful for dynamic schema handling when the schema is not
 // fully known at compile time. Returns nil on error or after Close.

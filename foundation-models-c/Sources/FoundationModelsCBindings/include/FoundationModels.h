@@ -103,6 +103,7 @@ char * _Nullable FMGenerationSchemaGetJSONString(FMGenerationSchemaRef _Nonnull 
 FMGeneratedContentRef _Nullable FMGeneratedContentCreateFromJSON(const char * _Nonnull jsonString, int * _Nullable outErrorCode, char * * _Nullable outErrorDescription);
 char * _Nullable FMGeneratedContentGetJSONString(FMGeneratedContentRef _Nonnull content);
 char * _Nullable FMGeneratedContentGetPropertyValue(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, int * _Nullable outErrorCode, char * * _Nullable outErrorDescription);
+bool FMGeneratedContentGetPropertyValueAsDouble(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName, double * _Nullable outValue, int * _Nullable outErrorCode);
 bool FMGeneratedContentIsComplete(FMGeneratedContentRef _Nonnull content);
 bool FMGeneratedContentHasProperty(FMGeneratedContentRef _Nonnull content, const char * _Nonnull propertyName);
 char * _Nullable FMGeneratedContentGetPropertyNames(FMGeneratedContentRef _Nonnull content);
