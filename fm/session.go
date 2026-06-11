@@ -96,6 +96,24 @@ func (s *Session) IsResponding() bool {
 	return bool(C.FMLanguageModelSessionIsResponding(C.FMLanguageModelSessionRef(s.ptr)))
 }
 
+// Prewarm asks the system to pre-load resources for this session so the first
+// request has lower latency. promptPrefix, when non-empty, is the prefix the
+// next prompt is expected to start with. Prewarm is a fire-and-forget hint and
+// is safe to call regardless of model availability.
+func (s *Session) Prewarm(promptPrefix string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.ptr == nil {
+		return
+	}
+	var cPrefix *C.char
+	if promptPrefix != "" {
+		cPrefix = C.CString(promptPrefix)
+		defer C.free(unsafe.Pointer(cPrefix))
+	}
+	C.FMLanguageModelSessionPrewarm(C.FMLanguageModelSessionRef(s.ptr), cPrefix)
+}
+
 // Transcript returns the transcript view of this session. The transcript
 // shares the session's pointer and is updated as the session progresses.
 func (s *Session) Transcript() *Transcript { return s.transcript }
