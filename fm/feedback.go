@@ -45,15 +45,19 @@ type FeedbackIssue struct {
 
 // FeedbackAttachmentOptions configures a feedback attachment.
 type FeedbackAttachmentOptions struct {
-	Sentiment           FeedbackSentiment
-	Issues              []FeedbackIssue
-	DesiredResponseText string
+	Sentiment              FeedbackSentiment
+	Issues                 []FeedbackIssue
+	DesiredResponseText    string
+	DesiredResponseContent *GeneratedContent
 }
 
 // LogFeedbackAttachment returns a FoundationModels feedback attachment payload.
 func (s *Session) LogFeedbackAttachment(options FeedbackAttachmentOptions) ([]byte, error) {
 	if !options.Sentiment.valid() {
 		return nil, fmt.Errorf("feedback attachment: unknown sentiment %d", options.Sentiment)
+	}
+	if options.DesiredResponseText != "" && options.DesiredResponseContent != nil {
+		return nil, fmt.Errorf("feedback attachment: desired response text and content are mutually exclusive")
 	}
 	for _, issue := range options.Issues {
 		if !issue.Category.valid() {
@@ -75,6 +79,36 @@ func (s *Session) LogFeedbackAttachment(options FeedbackAttachmentOptions) ([]by
 		}
 		cIssues = C.CString(string(payload))
 		defer C.free(unsafe.Pointer(cIssues))
+	}
+
+	if options.DesiredResponseContent != nil {
+		contentJSON, err := options.DesiredResponseContent.JSON()
+		if err != nil {
+			return nil, err
+		}
+		cDesiredContent := C.CString(contentJSON)
+		defer C.free(unsafe.Pointer(cDesiredContent))
+
+		var length C.size_t
+		var code C.int
+		var desc *C.char
+		ptr := C.FMLanguageModelSessionLogFeedbackAttachmentWithDesiredResponseContent(
+			C.FMLanguageModelSessionRef(s.ptr),
+			C.FMFeedbackSentiment(options.Sentiment),
+			cIssues,
+			cDesiredContent,
+			&length,
+			&code,
+			&desc,
+		)
+		if ptr == nil {
+			return nil, errorFromStatus(GenerationErrorCode(code), goStringAndFree(desc))
+		}
+		defer C.FMFreeString(ptr)
+		if length > C.size_t(math.MaxInt32) {
+			return nil, fmt.Errorf("feedback attachment: payload too large")
+		}
+		return C.GoBytes(unsafe.Pointer(ptr), C.int(length)), nil
 	}
 
 	var cDesired *C.char
