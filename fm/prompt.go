@@ -81,3 +81,16 @@ func buildComposedPrompt(prompt Prompt) (C.FMComposedPrompt, error) {
 	}
 	return cp, nil
 }
+
+func releaseComposedPromptForTest(cp C.FMComposedPrompt) {
+	C.FMRelease(unsafe.Pointer(cp))
+}
+
+func composedPromptTextContentForTest(cp C.FMComposedPrompt) string {
+	raw := C.FMComposedPromptGetTextContent(cp)
+	if raw == nil {
+		return ""
+	}
+	defer C.FMFreeString(raw)
+	return C.GoString(raw)
+}
