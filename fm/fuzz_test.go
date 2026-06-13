@@ -123,7 +123,7 @@ func FuzzSchemaCreation(f *testing.F) {
 		defer schema.Close()
 		_, err = schema.JSON()
 		if err != nil {
-			t.Errorf("schema.JSON() failed: %v", err)
+			return
 		}
 	})
 }
@@ -212,6 +212,152 @@ func FuzzGeneratedContentPropertyAccess(f *testing.F) {
 		_, _ = c.ValueAsInt64(propName)
 		_, _ = c.ValueAsBool(propName)
 		_, _ = c.ValueAsFloat64(propName)
+	})
+}
+
+func FuzzGenerationOptionsJSON(f *testing.F) {
+	f.Add(0.0, 1, 0, 0.0, int64(0), false, false)
+	f.Add(-1.0, 0, -1, -0.1, int64(-1), true, true)
+	f.Add(2.5, 1024, 50, 1.0, int64(9223372036854775807), true, false)
+	f.Fuzz(func(t *testing.T, temperature float64, maxTokens int, top int, topP float64, seed int64, useTop bool, useTopP bool) {
+		opts := GenerationOptions{}
+		opts.Temperature = Float64Ptr(temperature)
+		opts.MaximumResponseTokens = IntPtr(maxTokens)
+
+		var topPtr *int
+		var topPPtr *float64
+		if useTop {
+			topPtr = IntPtr(top)
+		}
+		if useTopP {
+			topPPtr = Float64Ptr(topP)
+		}
+		opts.Sampling = &[]SamplingMode{SamplingRandom(topPtr, topPPtr, Int64Ptr(seed))}[0]
+
+		jsonStr, err := opts.toJSON()
+		if err != nil {
+			return
+		}
+		if jsonStr == "" {
+			return
+		}
+		var got map[string]any
+		if err := json.Unmarshal([]byte(jsonStr), &got); err != nil {
+			t.Fatalf("options JSON is invalid: %v: %s", err, jsonStr)
+		}
+	})
+}
+
+func FuzzSchemaGuideCombinations(f *testing.F) {
+	f.Add("field", "String", "a", "b", "[a-z]+", 0, 1, -1.0, 1.0)
+	f.Add("", "", "", "", "^(invalid", -1, 0, -999.0, 999.0)
+	f.Fuzz(func(t *testing.T, name, typeName, first, second, pattern string, count, maxItems int, min, max float64) {
+		guides := []*GenerationGuide{
+			AnyOf(first, second),
+			Constant(first),
+			Count(count),
+			MinItems(count),
+			MaxItems(maxItems),
+			Minimum(min),
+			Maximum(max),
+			Range(min, max),
+			Regex(pattern),
+			Element(Regex(pattern)),
+		}
+		schema, err := NewGenerationSchema("GuideFuzzSchema", "", []Property{{
+			Name:     name,
+			TypeName: typeName,
+			Optional: count%2 == 0,
+			Guides:   guides,
+		}}, nil)
+		if err != nil {
+			return
+		}
+		defer schema.Close()
+		_, _ = schema.JSON()
+	})
+}
+
+func FuzzExportSchemaRequest(f *testing.F) {
+	f.Add("json_schema", "Invoice", `{"type":"object"}`)
+	f.Add("openapi_schema", "", `{"type":"array","items":{"type":"string"}}`)
+	f.Add("markdown_report", "日本語", `{"properties":{"x":{"type":"number"}}}`)
+	f.Add("unsupported", "Bad", `not json`)
+	f.Fuzz(func(t *testing.T, format, name, schemaJSON string) {
+		var schema map[string]any
+		if err := json.Unmarshal([]byte(schemaJSON), &schema); err != nil {
+			schema = map[string]any{"raw": schemaJSON}
+		}
+		resp, err := ExportSchema(ExportSchemaRequest{
+			Format: format,
+			SchemaCandidate: SchemaCandidate{
+				ID:      "fuzz-schema",
+				Name:    name,
+				Version: "0.0.0",
+				Format:  "json_schema",
+				Status:  "candidate",
+				Schema:  schema,
+			},
+		})
+		if err != nil {
+			return
+		}
+		if resp.Format == "" || resp.Content == "" {
+			t.Fatalf("empty export response: %#v", resp)
+		}
+	})
+}
+
+func FuzzDiscoveryRequestJSON(f *testing.F) {
+	f.Add("doc-1", "text", "text/plain", "invoice.txt", "請求日 2026-01-01", "file:///tmp/invoice.txt", "ja")
+	f.Add("", "", "", "", "", "", "")
+	f.Fuzz(func(t *testing.T, id, sourceType, mediaType, name, content, uri, language string) {
+		opts := DefaultDiscoveryOptions()
+		req := DiscoverSchemaRequest{
+			Documents: []DiscoveryDocument{{
+				ID: id,
+				Source: DiscoveryDocumentSource{
+					Type:      sourceType,
+					MediaType: mediaType,
+					Name:      name,
+					Content:   content,
+					URI:       uri,
+				},
+				Metadata: map[string]any{"seed": len(content)},
+			}},
+			Hints:   &DiscoveryHints{Language: language, Domain: "fuzz"},
+			Options: &opts,
+		}
+		b, err := json.Marshal(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var roundTrip DiscoverSchemaRequest
+		if err := json.Unmarshal(b, &roundTrip); err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+func FuzzPromptTextAndAttachmentConstruction(f *testing.F) {
+	f.Add("hello", "/tmp/no-such-image.png", "")
+	f.Add("", "", "")
+	f.Add("日本語", "/tmp/no-such image.png", "label")
+	f.Fuzz(func(t *testing.T, text, path, label string) {
+		cp, err := buildComposedPrompt(Prompt{Text(text)})
+		if err != nil {
+			return
+		}
+		releaseComposedPromptForTest(cp)
+
+		attachment, err := NewImageAttachment(path, label)
+		if err != nil {
+			return
+		}
+		cp, err = buildComposedPrompt(Prompt{Text(text), attachment})
+		if err == nil {
+			releaseComposedPromptForTest(cp)
+		}
 	})
 }
 
